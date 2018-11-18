@@ -10,8 +10,8 @@ app = Flask(__name__)
 client = smartcar.AuthClient(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
-    redirect_uri='https://32327f9c.ngrok.io/callback',
-    scope=['read_vehicle_info', 'read_location', 'read_odometer'],
+    redirect_uri='https://ffcacfad.ngrok.io/callback',
+    scope=['read_vehicle_info', 'read_location', 'control_security', 'control_security:lock', 'control_security:unlock'],
     test_mode=False,
 )
 
@@ -79,6 +79,26 @@ def webhook_handler():
                         print(latitude, longitude)
                         response = {
                             'text':'Your car is here!\nhttps://maps.google.com/?q=%s,%s' % (latitude, longitude)
+                        }
+                    except NameError:
+                        response = {
+                            'text': 'Pardon? Type \"sign in\" to login'
+                        }
+                elif user_message.lower() == 'lock':
+                    try:
+                        vehicle.lock()
+                        response = {
+                            'text': 'Your car is now locked!'
+                        }
+                    except NameError:
+                        response = {
+                            'text': 'Pardon? Type \"sign in\" to login'
+                        }
+                elif user_message.lower() == 'unlock':
+                    try:
+                        vehicle.unlock()
+                        response = {
+                            'text': 'We unlocked your car!'
                         }
                     except NameError:
                         response = {
