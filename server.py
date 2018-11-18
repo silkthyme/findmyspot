@@ -84,6 +84,26 @@ def webhook_handler():
                         response = {
                             'text': 'Pardon? Type \"sign in\" to login'
                         }
+                elif user_message.lower() == 'lock':
+                    try:
+                        vehicle.lock()
+                        response = {
+                            'text': 'Your car is now locked!'
+                        }
+                    except NameError:
+                        response = {
+                            'text': 'Pardon? Type \"sign in\" to login'
+                        }
+                elif user_message.lower() == 'unlock':
+                    try:
+                        vehicle.unlock()
+                        response = {
+                            'text': 'We unlocked your car!'
+                        }
+                    except NameError:
+                        response = {
+                            'text': 'Pardon? Type \"sign in\" to login'
+                        }
                 else:
                     response = {
                         'text':'Forgot where you parked? Shoot our bot a message and it will respond with the location of your car!'
