@@ -44,24 +44,32 @@ def webhook_handler():
         for entry in body['entry']:
             webhook_event = entry['messaging'][0]
             print(webhook_event)
-            print(webhook_event['message']['text'])
-            response = {
-                "attachment":{
-                  "type":"template",
-                  "payload":{
-                    "template_type":"button",
-                    "text":"Click to locate your car",
-                    "buttons":[
-                      {
-                        "type":"web_url",
-                        "url": client.get_auth_url(state=webhook_event['sender']['id']),
-                        "title":"Sign in",
-                        "webview_height_ratio": "full"
+            user_message = webhook_event['message']['text']
+            print(user_message)
+
+            if user_message.lower() == 'find':
+                response = {
+                    "attachment":{
+                      "type":"template",
+                      "payload":{
+                        "template_type":"button",
+                        "text":"Click to locate your car",
+                        "buttons":[
+                          {
+                            "type":"web_url",
+                            "url": client.get_auth_url(state=webhook_event['sender']['id']),
+                            "title":"Sign in",
+                            "webview_height_ratio": "full"
+                          }
+                        ]
                       }
-                    ]
-                  }
+                    }
                 }
-            }
+            else:
+                response = {
+                    'text':'Pardon? Type find to locate your car'
+                }
+
             callSendAPI(webhook_event['sender']['id'], response)
         return 'EVENT_RECEIVED'
     else:
