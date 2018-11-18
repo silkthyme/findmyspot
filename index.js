@@ -4,6 +4,7 @@
 const
 	express = require('express'),
 	bodyParser = require('body-parser'),
+        request = require('request'),
 	app = express().use(bodyParser.json()); // creates express http server
 
 // sets server port and logs message on success
@@ -24,6 +25,11 @@ app.post('/webhook', (req, res) => {
 			// will only ever contain one message, so we get index 0
 			let webhook_event = entry.messaging[0];
 			console.log(webhook_event);
+			console.log(webhook_event.message.text);
+			let response = {
+      "text": `My name is ben`
+    }
+			callSendAPI(webhook_event.sender.id, response); 
 		});
 
 		// returns a '200 OK' response to all requests
@@ -60,5 +66,27 @@ app.get('/webhook', (req, res) => {
 		}
 	}
 });
+function callSendAPI(sender_psid, response) {
+  // Construct the message body
+  let request_body = {
+    "recipient": {
+      "id": sender_psid
+    },
+    "message": response
+  }
 
+  // Send the HTTP request to the Messenger Platform
+  request({
+    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "qs": { "access_token":'EAAet4WbKnZCoBAIrk7UoFAnypYhpnoh9KFTMlZAiKcmfZC2w5NiZCN3YFJAf9zUNShZBAzI2F2zHQZAYurhSu26Aj1qIW3bwRJGfpwLL6WkZCqXYOCnoTIcXZB6ta7g3HV0xIcy0KZChdAzbYkWftHmu98ZABCc6StWnEwZCCZA8VoIZBkWjc1gZBGh8Uv' },
+    "method": "POST",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      console.log('message sent!')
+    } else {
+      console.error("Unable to send message:" + err);
+    }
+  }); 
+}
 
