@@ -10,7 +10,7 @@ app = Flask(__name__)
 client = smartcar.AuthClient(
     client_id=CLIENT_ID,
     client_secret=CLIENT_SECRET,
-    redirect_uri='https://ffcacfad.ngrok.io/callback',
+    redirect_uri='https://542e5de9.ngrok.io/callback',
     scope=['read_vehicle_info', 'read_location', 'control_security', 'control_security:lock', 'control_security:unlock'],
     test_mode=False,
 )
@@ -30,7 +30,23 @@ def callback():
 
 
     response = {
-        "text": "You have successfully signed in!"
+        "text": "You have successfully signed in! What would you like to do?",
+        "quick_replies":[{
+                            "content_type":"text",
+                            "title":"Lock",
+                            "payload":"Lock",
+                            },
+                            {
+                             "content_type":"text",
+                             "title":"Unlock",
+                             "payload":"Unlock",
+                            },
+                            {
+                             "content_type":"text",
+                             "title":"Find",
+                             "payload":"Find",
+                             }
+                   ]
     }
 
     callSendAPI(id, response)
@@ -46,13 +62,12 @@ def webhook_handler():
             print(webhook_event)
             try:
                 user_message = webhook_event['message']['text']
-            except KeyError:
+            except:
                 response = {
-                    'text':'Please type a valid input'
+                    'text':'Sorry, I didn\'t understand that'
                 }
             else:
                 print(user_message)
-
                 if user_message.lower() == 'sign in' or user_message.lower() == 'signin':
                     response = {
                         "attachment":{
@@ -80,9 +95,9 @@ def webhook_handler():
                         response = {
                             'text':'Your car is here!\nhttps://maps.google.com/?q=%s,%s' % (latitude, longitude)
                         }
-                    except NameError:
+                    except:
                         response = {
-                            'text': 'Pardon? Type \"sign in\" to login'
+                            'text': 'Uh oh! You need to "sign in" first'
                         }
                 elif user_message.lower() == 'lock':
                     try:
@@ -90,9 +105,9 @@ def webhook_handler():
                         response = {
                             'text': 'Your car is now locked!'
                         }
-                    except NameError:
+                    except:
                         response = {
-                            'text': 'Pardon? Type \"sign in\" to login'
+                            'text': 'Uh oh! You need to "sign in" first'
                         }
                 elif user_message.lower() == 'unlock':
                     try:
@@ -100,9 +115,19 @@ def webhook_handler():
                         response = {
                             'text': 'We unlocked your car!'
                         }
-                    except NameError:
+                    except:
                         response = {
-                            'text': 'Pardon? Type \"sign in\" to login'
+                            'text': 'Uh oh! You need to "sign in" first'
+                        }
+                elif user_message.lower() == 'sign out' or user_message.lower() == 'signout':
+                    try:
+                        vehicle.disconnect()
+                        response = {
+                            'text': 'You signed out!'
+                        }
+                    except:
+                        response = {
+                            'text': 'You\'re not signed in yet!'
                         }
                 else:
                     response = {
