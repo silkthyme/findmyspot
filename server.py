@@ -24,16 +24,16 @@ def callback():
     print(access)
     response = smartcar.get_vehicle_ids(access['access_token'])
     vehicle_id = response['vehicles'][0]
+    global vehicle
     vehicle = smartcar.Vehicle(vehicle_id, access['access_token'])
-    location = vehicle.location()
-    latitude = location['data']['latitude']
-    longitude = location['data']['longitude']
-    print(latitude, longitude)
-    text = {
-        'text':'https://maps.google.com/?q=%s,%s' % (latitude, longitude)
-    }
-    callSendAPI(id, text)
     # return jsonify(access)
+
+
+    response = {
+        "text": "You have successfully signed in!"
+    }
+
+    callSendAPI(id, response)
     return 'Please close this popup window'
 
 @app.route('/webhook', methods=['POST'])
@@ -44,24 +44,51 @@ def webhook_handler():
         for entry in body['entry']:
             webhook_event = entry['messaging'][0]
             print(webhook_event)
-            print(webhook_event['message']['text'])
-            response = {
-                "attachment":{
-                  "type":"template",
-                  "payload":{
-                    "template_type":"button",
-                    "text":"Click to locate your car",
-                    "buttons":[
-                      {
-                        "type":"web_url",
-                        "url": client.get_auth_url(state=webhook_event['sender']['id']),
-                        "title":"Sign in",
-                        "webview_height_ratio": "full"
-                      }
-                    ]
-                  }
+            try:
+                user_message = webhook_event['message']['text']
+            except KeyError:
+                response = {
+                    'text':'Please type a valid input'
                 }
-            }
+            else:
+                print(user_message)
+
+                if user_message.lower() == 'sign in' or user_message.lower() == 'signin':
+                    response = {
+                        "attachment":{
+                          "type":"template",
+                          "payload":{
+                            "template_type":"button",
+                            "text":"Press the button below!",
+                            "buttons":[
+                              {
+                                "type":"web_url",
+                                "url": client.get_auth_url(state=webhook_event['sender']['id']),
+                                "title":"Sign in",
+                                "webview_height_ratio": "full"
+                              }
+                            ]
+                          }
+                        }
+                    }
+                elif user_message.lower() == 'find':
+                    try:
+                        location = vehicle.location()
+                        latitude = location['data']['latitude']
+                        longitude = location['data']['longitude']
+                        print(latitude, longitude)
+                        response = {
+                            'text':'Your car is here!\nhttps://maps.google.com/?q=%s,%s' % (latitude, longitude)
+                        }
+                    except NameError:
+                        response = {
+                            'text': 'Pardon? Type \"sign in\" to login'
+                        }
+                else:
+                    response = {
+                        'text':'Forgot where you parked? Shoot our bot a message and it will respond with the location of your car!'
+                    }
+
             callSendAPI(webhook_event['sender']['id'], response)
         return 'EVENT_RECEIVED'
     else:
